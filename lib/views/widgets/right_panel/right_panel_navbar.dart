@@ -13,6 +13,7 @@ import '../../../viewmodels/dashboard_provider.dart';
 // Top navigation bar — fully responsive
 // Tablet: hides title and some icons to save space
 // Desktop: full layout with title, search, icons, avatar
+// Clock icon replaced with power/settings icon as per design
 class RightPanelNavbar extends ConsumerWidget {
   const RightPanelNavbar({super.key});
 
@@ -67,7 +68,7 @@ class RightPanelNavbar extends ConsumerWidget {
               iconSize: isCompact ? 16 : 18,
             ),
           Gap(isCompact ? 4 : 8),
-          // Notification icon — always visible
+          // Notification bell — always visible
           AppIconButton(
             icon: Icons.notifications_none_rounded,
             tooltip: AppStrings.tooltipNotifications,
@@ -76,23 +77,25 @@ class RightPanelNavbar extends ConsumerWidget {
             iconSize: isCompact ? 16 : 18,
           ),
           Gap(isCompact ? 4 : 8),
-          // Clock icon — hidden on tablet
+          // Power icon — replaces clock icon as per design
+          // Hidden on tablet to save space
           if (!isTablet)
             AppIconButton(
-              icon: Icons.access_time_rounded,
+              icon: Icons.power_settings_new_rounded,
               tooltip: AppStrings.tooltipClock,
               onTap: () {},
               size: isCompact ? 28 : 32,
               iconSize: isCompact ? 16 : 18,
             ),
           Gap(isCompact ? 6 : 12),
-          // User avatar — always visible
+          // User avatar with real photo
           if (user != null)
             AppAvatar(
               colorHex: user.avatarColorHex,
               name: user.name,
               size: isCompact ? 28 : 32,
               fontSize: 10,
+              imagePath: user.avatarImagePath,
             ),
         ],
       ),

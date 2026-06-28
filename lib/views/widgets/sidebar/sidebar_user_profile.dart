@@ -9,6 +9,7 @@ import '../../../theme/app_typography.dart';
 // User profile section in sidebar below logo
 // Full mode: large avatar + name + role badge stacked vertically
 // Collapsed mode: small avatar only centered
+// Uses real photo if avatarImagePath is set in UserModel
 class SidebarUserProfile extends StatelessWidget {
   final UserModel user;
   final bool isCollapsed;
@@ -34,6 +35,7 @@ class SidebarUserProfile extends StatelessWidget {
         colorHex: user.avatarColorHex,
         name: user.name,
         size: 36,
+        imagePath: user.avatarImagePath,
       ),
     );
   }
@@ -42,18 +44,33 @@ class SidebarUserProfile extends StatelessWidget {
   Widget _fullProfile() {
     return Column(
       children: [
-        AppAvatar(
-          colorHex: user.avatarColorHex,
-          name: user.name,
-          size: 56,
-          fontSize: 20,
+        // Avatar with ring decoration
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.primary.withAlpha(80),
+              width: 2,
+            ),
+          ),
+          padding: const EdgeInsets.all(2),
+          child: AppAvatar(
+            colorHex: user.avatarColorHex,
+            name: user.name,
+            size: 60,
+            fontSize: 20,
+            imagePath: user.avatarImagePath,
+          ),
         ),
-        const Gap(8),
+        const Gap(10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
             user.name,
-            style: AppTypography.labelLg.copyWith(color: AppColors.textPrimary),
+            style: AppTypography.labelLg.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

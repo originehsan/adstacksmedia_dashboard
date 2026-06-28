@@ -7,10 +7,9 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_radius.dart';
 import '../../../theme/app_typography.dart';
 
-// Featured project hero card at top of main content area
-// Dark navy gradient background with floating geometric shapes
-// Fixed height removed — uses mainAxisSize.min to prevent overflow
-// Geometric shapes clipped to card bounds on small screens
+// Featured project hero card — full width of center area
+// Dark navy gradient with large 3D geometric shapes on right
+// Responsive — shapes hidden on very small screens
 class HeroProjectCard extends StatelessWidget {
   const HeroProjectCard({super.key});
 
@@ -19,30 +18,46 @@ class HeroProjectCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.xl),
       child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(minHeight: 180),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.heroBgStart, AppColors.heroBgEnd],
+            colors: [
+              AppColors.heroBgStart,
+              Color(0xFF2D2F6B),
+              AppColors.heroBgEnd,
+            ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
+            stops: [0.0, 0.5, 1.0],
           ),
         ),
         child: Stack(
           children: [
-            // Floating 3D geometric shapes — clipped by ClipRRect
-            const Positioned(
+            // Large geometric shapes filling right half
+            Positioned(
               right: 0,
               top: 0,
               bottom: 0,
-              child: SizedBox(
-                width: 200,
-                child: CustomPaint(
-                  painter: GeometricShapePainter(),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final shapeWidth =
+                      MediaQuery.of(context).size.width * 0.35;
+                  return SizedBox(
+                    width: shapeWidth.clamp(150.0, 400.0),
+                    child: const CustomPaint(
+                      painter: GeometricShapePainter(),
+                    ),
+                  );
+                },
               ),
             ),
-            // Card content — no fixed height, grows with content
+            // Card content — left aligned
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 28,
+                vertical: 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -50,8 +65,8 @@ class HeroProjectCard extends StatelessWidget {
                   // Project tag pill
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(38),
@@ -62,21 +77,24 @@ class HeroProjectCard extends StatelessWidget {
                       style: AppTypography.heroTag,
                     ),
                   ),
-                  const Gap(8),
-                  // Hero title
+                  const Gap(10),
+                  // Hero title — bigger and bolder
                   Text(
                     AppStrings.heroTitle,
-                    style: AppTypography.heroTitle,
+                    style: AppTypography.heroTitle.copyWith(
+                      fontSize: 26,
+                      height: 1.15,
+                    ),
                   ),
-                  const Gap(4),
-                  // Hero subtitle — ellipsis on very small screens
+                  const Gap(6),
+                  // Hero subtitle
                   Text(
                     AppStrings.heroSubtitle,
                     style: AppTypography.heroSubtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const Gap(12),
+                  const Gap(16),
                   // CTA button
                   AppPrimaryButton(
                     label: AppStrings.heroCtaLabel,

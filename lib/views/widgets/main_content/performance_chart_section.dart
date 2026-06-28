@@ -144,7 +144,7 @@ class PerformanceChartSection extends ConsumerWidget {
                 ),
                 borderData: FlBorderData(show: false),
                 minY: 0,
-                maxY: 60,
+                maxY: 70,
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
                     getTooltipColor: (_) => AppColors.chartTooltipBg,

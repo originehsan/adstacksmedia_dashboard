@@ -1,17 +1,20 @@
 import 'package:equatable/equatable.dart';
 import '../constants/app_enums.dart';
 
+// User model — avatarImagePath optional, falls back to initials if null
 class UserModel extends Equatable {
   final String id;
   final String name;
   final UserRole role;
   final int avatarColorHex;
+  final String? avatarImagePath; // local asset path for real photo
 
   const UserModel({
     required this.id,
     required this.name,
     required this.role,
     required this.avatarColorHex,
+    this.avatarImagePath,
   });
 
   String get roleLabel {
@@ -38,15 +41,17 @@ class UserModel extends Equatable {
     String? name,
     UserRole? role,
     int? avatarColorHex,
+    String? avatarImagePath,
   }) {
     return UserModel(
       id: id ?? this.id,
       name: name ?? this.name,
       role: role ?? this.role,
       avatarColorHex: avatarColorHex ?? this.avatarColorHex,
+      avatarImagePath: avatarImagePath ?? this.avatarImagePath,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, role, avatarColorHex];
+  List<Object?> get props => [id, name, role, avatarColorHex, avatarImagePath];
 }

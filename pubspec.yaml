@@ -18,6 +18,7 @@ dependencies:
   equatable: ^2.0.5
   gap: ^3.0.1
   responsive_framework: ^1.5.1
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
