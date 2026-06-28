@@ -7,13 +7,15 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
 
 // Single creator row in Top Creators table
-// Shows avatar, handle, artworks count, colored rating bar
+// showArtworks hidden on mobile to prevent overflow
 class CreatorTableRow extends StatelessWidget {
   final CreatorModel creator;
+  final bool showArtworks;
 
   const CreatorTableRow({
     super.key,
     required this.creator,
+    this.showArtworks = true,
   });
 
   @override
@@ -22,15 +24,15 @@ class CreatorTableRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          // Avatar + handle name
-          SizedBox(
-            width: 140,
+          // Avatar + handle name — flexible to prevent overflow
+          Expanded(
+            flex: 3,
             child: Row(
               children: [
                 AppAvatar(
                   colorHex: creator.avatarColorHex,
                   name: creator.name,
-                  size: 28,
+                  size: 26,
                   fontSize: 10,
                 ),
                 const Gap(6),
@@ -42,23 +44,26 @@ class CreatorTableRow extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
             ),
           ),
-          // Artworks count
-          SizedBox(
-            width: 70,
-            child: Text(
-              creator.artworksCount.toString(),
-              style: AppTypography.bodySm.copyWith(
-                color: AppColors.textSecondary,
+          // Artworks count — hidden on mobile
+          if (showArtworks)
+            SizedBox(
+              width: 65,
+              child: Text(
+                creator.artworksCount.toString(),
+                style: AppTypography.bodySm.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
-          ),
-          // Colored rating bar — color matches avatar color
+          // Rating bar
           Expanded(
+            flex: 2,
             child: AppRatingBar(
               value: creator.rating,
               height: 5,

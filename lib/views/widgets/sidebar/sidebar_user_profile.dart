@@ -49,14 +49,15 @@ class SidebarUserProfile extends StatelessWidget {
           fontSize: 20,
         ),
         const Gap(8),
-        Text(
-          user.name,
-          style: AppTypography.labelLg.copyWith(
-            color: AppColors.textPrimary,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            user.name,
+            style: AppTypography.labelLg.copyWith(color: AppColors.textPrimary),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         const Gap(4),
         AppBadge(

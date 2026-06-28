@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'constants/app_strings.dart';
 import 'theme/app_theme.dart';
 import 'utils/scroll_behavior_web.dart';
@@ -22,8 +23,22 @@ class AdstacksApp extends ConsumerWidget {
       // Enables mouse drag scrolling on Flutter Web
       scrollBehavior: const WebScrollBehavior(),
 
-      // Single screen app — navigation handled inside DashboardScreen
-      // via activeRoute state in DashboardViewModel
+      // ResponsiveBreakpoints wraps the entire app
+      // Defines breakpoints used by ResponsiveBreakpoints.of(context)
+      builder: (context, child) => ResponsiveBreakpoints.builder(
+        child: child!,
+        breakpoints: [
+          // Mobile — single column, drawer, bottom nav
+          const Breakpoint(start: 0, end: 600, name: MOBILE),
+          // Tablet — collapsed sidebar, no right panel
+          const Breakpoint(start: 601, end: 900, name: TABLET),
+          // Desktop small — full sidebar, right panel as overlay
+          const Breakpoint(start: 901, end: 1200, name: DESKTOP),
+          // Desktop large — full 3 column layout
+          const Breakpoint(start: 1201, end: double.infinity, name: '4K'),
+        ],
+      ),
+
       home: const DashboardScreen(),
     );
   }

@@ -46,9 +46,16 @@ class SidebarNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HoverBuilder(
+      cursor: SystemMouseCursors.click,
       builder: (isHovered) {
         return GestureDetector(
-          onTap: onTap,
+          onTap: () {
+            // Close drawer if open on mobile before navigating
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+            onTap?.call();
+          },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             margin: const EdgeInsets.symmetric(

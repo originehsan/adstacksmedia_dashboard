@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import '../../../constants/app_enums.dart';
 import '../../../shared/widgets/app_scrollbar.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../viewmodels/dashboard_provider.dart';
@@ -23,18 +24,45 @@ class MainContentWidget extends ConsumerWidget {
       child: AppScrollbar(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: _buildContent(activeRoute),
+          // AnimatedSwitcher adds fade transition when switching nav routes
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.02, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: KeyedSubtree(
+              key: ValueKey(activeRoute),
+              child: _buildContent(activeRoute),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildContent(dynamic activeRoute) {
-    switch (activeRoute.name) {
-      case 'home':
+  Widget _buildContent(NavRoute activeRoute) {
+    switch (activeRoute) {
+      case NavRoute.home:
         return const _HomeContent();
-      default:
-        return PlaceholderContent(routeName: activeRoute.name);
+      case NavRoute.employees:
+        return const PlaceholderContent(routeName: 'employees');
+      case NavRoute.attendance:
+        return const PlaceholderContent(routeName: 'attendance');
+      case NavRoute.summary:
+        return const PlaceholderContent(routeName: 'summary');
+      case NavRoute.information:
+        return const PlaceholderContent(routeName: 'information');
+      case NavRoute.settings:
+        return const PlaceholderContent(routeName: 'settings');
     }
   }
 }
@@ -63,6 +91,7 @@ class _HomeContent extends StatelessWidget {
 }
 
 // Responsive row — side by side on desktop, stacked on smaller screens
+// IntrinsicHeight removed — conflicts with LayoutBuilder inside AppRatingBar
 class _ProjectsAndCreatorsRow extends StatelessWidget {
   const _ProjectsAndCreatorsRow();
 
@@ -72,15 +101,13 @@ class _ProjectsAndCreatorsRow extends StatelessWidget {
     final isSideBySide = width > 900;
 
     if (isSideBySide) {
-      return const IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: AllProjectsSection()),
-            Gap(16),
-            Expanded(child: TopCreatorsSection()),
-          ],
-        ),
+      return const  Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children:  [
+          Expanded(child: AllProjectsSection()),
+          Gap(16),
+          Expanded(child: TopCreatorsSection()),
+        ],
       );
     }
 

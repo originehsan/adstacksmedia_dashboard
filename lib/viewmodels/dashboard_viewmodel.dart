@@ -10,20 +10,21 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
   final DashboardRepository _repository;
 
   DashboardViewModel({required DashboardRepository repository})
-      : _repository = repository,
-        super(
-          DashboardState(
-            calendarFocusedDay: DateTime.now(),
-            calendarSelectedDay: DateTime.now(),
-            calendarFirstDay: DateTime.utc(2020, 1, 1),
-            calendarLastDay: DateTime.utc(2030, 12, 31),
-          ),
-        );
+    : _repository = repository,
+      super(
+        DashboardState(
+          calendarFocusedDay: DateTime.now(),
+          calendarSelectedDay: DateTime.now(),
+          calendarFirstDay: DateTime.utc(2020, 1, 1),
+          calendarLastDay: DateTime.utc(2030, 12, 31),
+        ),
+      );
 
   // Called once when provider is created — loads all mock data into state
   void initialize() {
     AppLogger.info('DashboardViewModel: initializing');
     try {
+      if (!mounted) return;
       state = state.copyWith(
         currentUser: _repository.getCurrentUser(),
         primaryNavItems: _repository.getPrimaryNavItems(),
@@ -45,6 +46,7 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
         error: e,
         stackTrace: st,
       );
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Failed to load dashboard data.',
@@ -60,9 +62,7 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
 
   // Toggles sidebar between full (240px) and collapsed (64px)
   void toggleSidebar() {
-    state = state.copyWith(
-      isSidebarCollapsed: !state.isSidebarCollapsed,
-    );
+    state = state.copyWith(isSidebarCollapsed: !state.isSidebarCollapsed);
   }
 
   void expandSidebar() {
@@ -75,33 +75,50 @@ class DashboardViewModel extends StateNotifier<DashboardState> {
 
   // Toggles a single workspace expand/collapse by id
   void toggleWorkspace(String workspaceId) {
-    final updated = state.workspaces.map((ws) {
-      if (ws.id == workspaceId) return ws.toggleExpanded();
-      return ws;
-    }).toList();
+    final updated =
+        state.workspaces.map((ws) {
+          if (ws.id == workspaceId) return ws.toggleExpanded();
+          return ws;
+        }).toList();
     state = state.copyWith(workspaces: updated);
   }
 
   // Called from TableCalendar onDaySelected
   // Both selectedDay and focusedDay must update together
+  // Called from TableCalendar onDaySelected
+  // Both selectedDay and focusedDay must update together
+  // selectedDay is preserved separately — never wiped by page change
   void selectCalendarDay(DateTime selectedDay, DateTime focusedDay) {
+    final clampedFocused = focusedDay.isBefore(state.calendarFirstDay)
+        ? state.calendarFirstDay
+        : focusedDay.isAfter(state.calendarLastDay)
+            ? state.calendarLastDay
+            : focusedDay;
+    if (!mounted) return;
     state = state.copyWith(
       calendarSelectedDay: selectedDay,
-      calendarFocusedDay: focusedDay,
+      calendarFocusedDay: clampedFocused,
     );
   }
 
   // Called from TableCalendar onPageChanged
   // Only focusedDay updates — prevents calendar reset on rebuild
+  // Called from TableCalendar onPageChanged
+  // Only focusedDay updates — prevents calendar reset on rebuild
+  // Clamped to valid range — prevents TableCalendar assertion error
   void changeCalendarPage(DateTime focusedDay) {
-    state = state.copyWith(calendarFocusedDay: focusedDay);
+    final clamped = focusedDay.isBefore(state.calendarFirstDay)
+        ? state.calendarFirstDay
+        : focusedDay.isAfter(state.calendarLastDay)
+            ? state.calendarLastDay
+            : focusedDay;
+    if (!mounted) return;
+    state = state.copyWith(calendarFocusedDay: clamped);
   }
 
   // Toggles right panel overlay on desktop-sm (900–1200px)
   void toggleRightPanel() {
-    state = state.copyWith(
-      isRightPanelVisible: !state.isRightPanelVisible,
-    );
+    state = state.copyWith(isRightPanelVisible: !state.isRightPanelVisible);
   }
 
   // Updates search query from top navbar search bar

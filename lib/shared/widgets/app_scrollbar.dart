@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_radius.dart';
 
-// Themed scrollbar wrapper for all scrollable areas in the dashboard
-// Used by: main content area, right panel, sidebar workspace section
+// Scrollbar removed — Flutter Web handles scrollbars automatically
+// Using Scrollbar widget without explicit ScrollController causes errors
 class AppScrollbar extends StatelessWidget {
   final Widget child;
   final ScrollController? controller;
@@ -17,12 +16,6 @@ class AppScrollbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scrollbar(
-      controller: controller,
-      thumbVisibility: isAlwaysShown,
-      thickness: 4,
-      radius: const Radius.circular(AppRadius.lg),
-      child: child,
-    );
+    return child;
   }
 }

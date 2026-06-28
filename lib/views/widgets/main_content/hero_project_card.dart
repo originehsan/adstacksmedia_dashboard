@@ -9,81 +9,87 @@ import '../../../theme/app_typography.dart';
 
 // Featured project hero card at top of main content area
 // Dark navy gradient background with floating geometric shapes
-// Shows project tag, title, subtitle and Learn More CTA
+// Fixed height removed — uses mainAxisSize.min to prevent overflow
+// Geometric shapes clipped to card bounds on small screens
 class HeroProjectCard extends StatelessWidget {
   const HeroProjectCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 190,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.heroBgStart, AppColors.heroBgEnd],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.heroBgStart, AppColors.heroBgEnd],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
         ),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-      ),
-      child: Stack(
-        children: [
-          // Floating 3D geometric shapes — top right decoration
-        const  Positioned(
-            right: 0,
-            top: 0,
-            child: SizedBox(
-              width: 220,
-              height: 190,
-              child: CustomPaint(
-                painter:  GeometricShapePainter(),
+        child: Stack(
+          children: [
+            // Floating 3D geometric shapes — clipped by ClipRRect
+            const Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: SizedBox(
+                width: 200,
+                child: CustomPaint(
+                  painter: GeometricShapePainter(),
+                ),
               ),
             ),
-          ),
-          // Card content — left aligned
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Project tag pill
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+            // Card content — no fixed height, grows with content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Project tag pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(38),
+                      borderRadius: AppRadius.pill,
+                    ),
+                    child: Text(
+                      AppStrings.heroTag,
+                      style: AppTypography.heroTag,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(38),
-                    borderRadius: AppRadius.pill,
+                  const Gap(8),
+                  // Hero title
+                  Text(
+                    AppStrings.heroTitle,
+                    style: AppTypography.heroTitle,
                   ),
-                  child: Text(
-                    AppStrings.heroTag,
-                    style: AppTypography.heroTag,
+                  const Gap(4),
+                  // Hero subtitle — ellipsis on very small screens
+                  Text(
+                    AppStrings.heroSubtitle,
+                    style: AppTypography.heroSubtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const Gap(8),
-                // Hero title
-                Text(
-                  AppStrings.heroTitle,
-                  style: AppTypography.heroTitle,
-                ),
-                const Gap(4),
-                // Hero subtitle
-                Text(
-                  AppStrings.heroSubtitle,
-                  style: AppTypography.heroSubtitle,
-                ),
-                const Gap(12),
-                // CTA button
-                AppPrimaryButton(
-                  label: AppStrings.heroCtaLabel,
-                  backgroundColor: Colors.white,
-                  textColor: AppColors.heroBgStart,
-                  onPressed: () {},
-                ),
-              ],
+                  const Gap(12),
+                  // CTA button
+                  AppPrimaryButton(
+                    label: AppStrings.heroCtaLabel,
+                    backgroundColor: Colors.white,
+                    textColor: AppColors.heroBgStart,
+                    onPressed: () {},
+                  ),
+                  const Gap(4),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

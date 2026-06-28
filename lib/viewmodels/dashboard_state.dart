@@ -61,7 +61,7 @@ class DashboardState extends Equatable {
     required this.calendarFirstDay,
     required this.calendarLastDay,
     this.searchQuery = '',
-    this.isLoading = false,
+   this.isLoading = true,
     this.errorMessage,
   });
 

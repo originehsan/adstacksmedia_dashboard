@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import '../../../constants/app_strings.dart';
 import '../../../shared/widgets/app_avatar.dart';
 import '../../../shared/widgets/app_icon_button.dart';
@@ -9,8 +10,9 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
 import '../../../viewmodels/dashboard_provider.dart';
 
-// Top navigation bar spanning full width above main content and right panel
-// Shows active route title, search bar, action icons, user avatar
+// Top navigation bar — fully responsive
+// Tablet: hides title and some icons to save space
+// Desktop: full layout with title, search, icons, avatar
 class RightPanelNavbar extends ConsumerWidget {
   const RightPanelNavbar({super.key});
 
@@ -18,10 +20,15 @@ class RightPanelNavbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardProvider);
     final user = state.currentUser;
+    final isMobile = ResponsiveBreakpoints.of(context).equals(MOBILE);
+    final isTablet = ResponsiveBreakpoints.of(context).equals(TABLET);
+    final isCompact = isMobile || isTablet;
 
     return Container(
       height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 12 : 16,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.cardBg,
         border: Border(
@@ -33,13 +40,15 @@ class RightPanelNavbar extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Active route title
-          Text(
-            AppStrings.panelHomeTitle,
-            style: AppTypography.headingSm,
-          ),
-          const Gap(24),
-          // Search bar — flex grows to fill available space
+          // Title — hidden on tablet to save space
+          if (!isTablet) ...[
+            Text(
+              AppStrings.panelHomeTitle,
+              style: AppTypography.headingSm,
+            ),
+            Gap(isCompact ? 12 : 24),
+          ],
+          // Search bar — always visible, grows to fill space
           Expanded(
             child: AppSearchBar(
               onChanged: (value) => ref
@@ -47,33 +56,43 @@ class RightPanelNavbar extends ConsumerWidget {
                   .updateSearchQuery(value),
             ),
           ),
-          const Gap(16),
-          // Action icon buttons
-          AppIconButton(
-            icon: Icons.grid_view_rounded,
-            tooltip: AppStrings.tooltipGrid,
-            onTap: () {},
-          ),
-          const Gap(8),
+          Gap(isCompact ? 8 : 16),
+          // Grid icon — hidden on tablet
+          if (!isTablet)
+            AppIconButton(
+              icon: Icons.grid_view_rounded,
+              tooltip: AppStrings.tooltipGrid,
+              onTap: () {},
+              size: isCompact ? 28 : 32,
+              iconSize: isCompact ? 16 : 18,
+            ),
+          Gap(isCompact ? 4 : 8),
+          // Notification icon — always visible
           AppIconButton(
             icon: Icons.notifications_none_rounded,
             tooltip: AppStrings.tooltipNotifications,
             onTap: () {},
+            size: isCompact ? 28 : 32,
+            iconSize: isCompact ? 16 : 18,
           ),
-          const Gap(8),
-          AppIconButton(
-            icon: Icons.access_time_rounded,
-            tooltip: AppStrings.tooltipClock,
-            onTap: () {},
-          ),
-          const Gap(12),
-          // User avatar
+          Gap(isCompact ? 4 : 8),
+          // Clock icon — hidden on tablet
+          if (!isTablet)
+            AppIconButton(
+              icon: Icons.access_time_rounded,
+              tooltip: AppStrings.tooltipClock,
+              onTap: () {},
+              size: isCompact ? 28 : 32,
+              iconSize: isCompact ? 16 : 18,
+            ),
+          Gap(isCompact ? 6 : 12),
+          // User avatar — always visible
           if (user != null)
             AppAvatar(
               colorHex: user.avatarColorHex,
               name: user.name,
-              size: 32,
-              fontSize: 11,
+              size: isCompact ? 28 : 32,
+              fontSize: 10,
             ),
         ],
       ),

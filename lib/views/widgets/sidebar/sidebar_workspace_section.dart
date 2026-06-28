@@ -13,10 +13,7 @@ import 'sidebar_workspace_item.dart';
 class SidebarWorkspaceSection extends ConsumerWidget {
   final List<WorkspaceModel> workspaces;
 
-  const SidebarWorkspaceSection({
-    super.key,
-    required this.workspaces,
-  });
+  const SidebarWorkspaceSection({super.key, required this.workspaces});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,11 +25,14 @@ class SidebarWorkspaceSection extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 12, 4),
           child: Row(
             children: [
-              Text(
-                AppStrings.workspacesLabel,
-                style: AppTypography.workspaceLabel,
+              Expanded(
+                child: Text(
+                  AppStrings.workspacesLabel,
+                  style: AppTypography.workspaceLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
               GestureDetector(
                 onTap: () {},
                 child: const Icon(
@@ -49,9 +49,10 @@ class SidebarWorkspaceSection extends ConsumerWidget {
         ...workspaces.map(
           (workspace) => SidebarWorkspaceItem(
             workspace: workspace,
-            onToggle: () => ref
-                .read(dashboardProvider.notifier)
-                .toggleWorkspace(workspace.id),
+            onToggle:
+                () => ref
+                    .read(dashboardProvider.notifier)
+                    .toggleWorkspace(workspace.id),
           ),
         ),
       ],

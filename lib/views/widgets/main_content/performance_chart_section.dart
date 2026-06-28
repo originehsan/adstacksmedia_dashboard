@@ -1,10 +1,10 @@
+import 'package:adstacksmedia_dashboard/theme/app_typography.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import '../../../constants/app_strings.dart';
 import '../../../shared/widgets/app_card.dart';
-import '../../../shared/widgets/app_section_header.dart';
 import '../../../theme/app_colors.dart';
 import '../../../viewmodels/dashboard_provider.dart';
 
@@ -15,37 +15,70 @@ class PerformanceChartSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(dashboardProvider).performanceData;
-
+    // select() prevents chart rebuild on unrelated state changes
+    // e.g. sidebar toggle, calendar selection, search query
+    final data = ref.watch(dashboardProvider.select((s) => s.performanceData));
     return AppCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header with legend
-         const AppSectionHeader(
-            title: AppStrings.performanceTitle,
-            trailing: Row(
-              children: [
-                _ChartLegend(
-                  color: AppColors.chartPending,
-                  label: AppStrings.legendPending,
-                ),
-                Gap(12),
-                _ChartLegend(
-                  color: AppColors.chartDone,
-                  label: AppStrings.legendDone,
-                ),
-              ],
-            ),
+          // On mobile stack title and legend vertically
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 300;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppStrings.performanceTitle,
+                          style: AppTypography.sectionTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (!isNarrow) ...[
+                        const Gap(8),
+                       const  _ChartLegend(
+                          color: AppColors.chartPending,
+                          label: AppStrings.legendPending,
+                        ),
+                        const Gap(8),
+                      const   _ChartLegend(
+                          color: AppColors.chartDone,
+                          label: AppStrings.legendDone,
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (isNarrow) ...[
+                    const Gap(4),
+                  const   Row(
+                      children: [
+                        _ChartLegend(
+                          color: AppColors.chartPending,
+                          label: AppStrings.legendPending,
+                        ),
+                         Gap(8),
+                        _ChartLegend(
+                          color: AppColors.chartDone,
+                          label: AppStrings.legendDone,
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
           const Gap(4),
-        const   Text(
+          const Text(
             AppStrings.performanceSubtitle,
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
           ),
           const Gap(16),
           // Line chart
@@ -57,10 +90,11 @@ class PerformanceChartSection extends ConsumerWidget {
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 10,
-                  getDrawingHorizontalLine: (value) => const FlLine(
-                    color: AppColors.chartGrid,
-                    strokeWidth: 0.5,
-                  ),
+                  getDrawingHorizontalLine:
+                      (value) => const FlLine(
+                        color: AppColors.chartGrid,
+                        strokeWidth: 0.5,
+                      ),
                 ),
                 titlesData: FlTitlesData(
                   bottomTitles: AxisTitles(
@@ -201,10 +235,7 @@ class _ChartLegend extends StatelessWidget {
   final Color color;
   final String label;
 
-  const _ChartLegend({
-    required this.color,
-    required this.label,
-  });
+  const _ChartLegend({required this.color, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -213,18 +244,12 @@ class _ChartLegend extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const Gap(4),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
         ),
       ],
     );

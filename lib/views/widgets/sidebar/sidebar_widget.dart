@@ -23,17 +23,13 @@ class SidebarWidget extends ConsumerWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeInOut,
-      width: isCollapsed
-          ? AppSpacing.sidebarCollapsedWidth
-          : AppSpacing.sidebarWidth,
+      width:
+          isCollapsed
+              ? AppSpacing.sidebarCollapsedWidth
+              : AppSpacing.sidebarWidth,
       decoration: const BoxDecoration(
         color: AppColors.sidebarBg,
-        border: Border(
-          right: BorderSide(
-            color: AppColors.border,
-            width: 0.5,
-          ),
-        ),
+        border: Border(right: BorderSide(color: AppColors.border, width: 0.5)),
       ),
       child: Column(
         children: [
@@ -41,10 +37,12 @@ class SidebarWidget extends ConsumerWidget {
           SidebarLogo(isCollapsed: isCollapsed),
           const Divider(height: 1, thickness: 0.5),
           // User profile
-          SidebarUserProfile(
-            user: state.currentUser!,
-            isCollapsed: isCollapsed,
-          ),
+          // User profile
+          if (state.currentUser != null)
+            SidebarUserProfile(
+              user: state.currentUser!,
+              isCollapsed: isCollapsed,
+            ),
           const Divider(height: 1, thickness: 0.5),
           const SizedBox(height: 8),
           // Nav items — scrollable in case of overflow
@@ -59,17 +57,17 @@ class SidebarWidget extends ConsumerWidget {
                         item: item,
                         isActive: state.activeRoute == item.route,
                         isCollapsed: isCollapsed,
-                        onTap: () => ref
-                            .read(dashboardProvider.notifier)
-                            .selectNav(item.route),
+                        onTap:
+                            () => ref
+                                .read(dashboardProvider.notifier)
+                                .selectNav(item.route),
                       ),
                     ),
                     const SizedBox(height: 8),
                     // Workspaces section — hidden when collapsed
-                    if (!isCollapsed)
-                      SidebarWorkspaceSection(
-                        workspaces: state.workspaces,
-                      ),
+                    // Prevents overflow in 64px icon-only mode
+                    if (!isCollapsed && state.workspaces.isNotEmpty)
+                      SidebarWorkspaceSection(workspaces: state.workspaces),
                   ],
                 ),
               ),

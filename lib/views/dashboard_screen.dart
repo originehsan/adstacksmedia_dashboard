@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import '../constants/app_enums.dart';
 import '../constants/app_strings.dart';
 import '../extensions/context_extensions.dart';
@@ -18,18 +19,50 @@ import 'widgets/sidebar/sidebar_widget.dart';
 
 // Responsive layout shell — zero business logic
 // Mobile  < 600px  : Drawer + BottomNav + single column
-// Tablet  600-900px: Auto-collapsed sidebar (64px) + main
-// Desktop 900-1200px: Full sidebar + main + right panel overlay toggle
+// Tablet  601-900px: Auto-collapsed sidebar (64px) + main
+// Desktop 901-1200px: Full sidebar + main + right panel overlay toggle
 // Desktop > 1200px : Full 3-column layout — sidebar + main + right panel
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(dashboardProvider.notifier).initialize();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Auto collapse/expand sidebar on resize using responsive_framework
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(dashboardProvider.notifier);
+      final bp = ResponsiveBreakpoints.of(context);
+      if (bp.equals(MOBILE)) {
+        notifier.collapseSidebar();
+      } else if (bp.equals(TABLET)) {
+        notifier.collapseSidebar();
+      } else {
+        notifier.expandSidebar();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(dashboardProvider);
 
-    // Show loader on first frame before data is ready
-    if (state.currentUser == null) {
+    // Show loader until data is ready
+    if (state.isLoading || state.currentUser == null) {
       return const Scaffold(
         backgroundColor: AppColors.pageBg,
         body: Center(
@@ -41,13 +74,45 @@ class DashboardScreen extends ConsumerWidget {
       );
     }
 
+    // Show error state if initialization failed
+    if (state.errorMessage != null) {
+      return Scaffold(
+        backgroundColor: AppColors.pageBg,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppColors.danger,
+              ),
+              const Gap(16),
+              Text(
+                state.errorMessage!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const Gap(16),
+              ElevatedButton(
+                onPressed: () =>
+                    ref.read(dashboardProvider.notifier).initialize(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (context.isMobile) return const _MobileLayout();
     if (context.isTablet) return const _TabletLayout();
     if (context.isDesktopSm) return const _DesktopSmLayout();
     return const _DesktopLayout();
   }
 }
-
 
 // ─── Mobile Layout < 600px ───────────────────────────────────────────────────
 class _MobileLayout extends ConsumerWidget {
@@ -61,7 +126,6 @@ class _MobileLayout extends ConsumerWidget {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: AppColors.pageBg,
-      // Mobile top app bar
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(AppSpacing.topBarHeight),
         child: Container(
@@ -72,70 +136,64 @@ class _MobileLayout extends ConsumerWidget {
               bottom: BorderSide(color: AppColors.border, width: 0.5),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
-              // Hamburger to open drawer
               AppIconButton(
                 icon: Icons.menu_rounded,
                 onTap: () => scaffoldKey.currentState?.openDrawer(),
                 tooltip: AppStrings.tooltipToggleSidebar,
               ),
-              const Gap(12),
-              // Logo
+              const Gap(8),
               Image.asset(
                 'assets/images/logo.png',
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 fit: BoxFit.contain,
               ),
-              const Gap(8),
-              Text(
-                AppStrings.appName,
-                style: AppTypography.headingSm.copyWith(
-                  color: AppColors.logoNavy,
+              const Gap(6),
+              // App name hidden on very small screens
+              if (context.screenWidth > 360)
+                Text(
+                  AppStrings.appName,
+                  style: AppTypography.headingSm.copyWith(
+                    color: AppColors.logoNavy,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
               const Spacer(),
-              // Search icon
               AppIconButton(
                 icon: Icons.search_rounded,
                 onTap: () {},
                 tooltip: AppStrings.searchHint,
+                size: 28,
+                iconSize: 16,
               ),
-              const Gap(4),
-              // Notification icon
               AppIconButton(
                 icon: Icons.notifications_none_rounded,
                 onTap: () {},
                 tooltip: AppStrings.tooltipNotifications,
+                size: 28,
+                iconSize: 16,
               ),
-              const Gap(8),
-              // User avatar
+              const Gap(4),
               if (state.currentUser != null)
                 AppAvatar(
                   colorHex: state.currentUser!.avatarColorHex,
                   name: state.currentUser!.name,
-                  size: 30,
+                  size: 28,
                   fontSize: 10,
                 ),
             ],
           ),
         ),
       ),
-      // Sidebar as drawer on mobile
       drawer: const Drawer(
         width: AppSpacing.sidebarWidth,
         backgroundColor: AppColors.sidebarBg,
         child: SidebarWidget(),
       ),
-      // Main content
-      body: const Row(
-        children: [
-          MainContentWidget(),
-        ],
-      ),
-      // Bottom navigation bar
+      body: const Row(children: [MainContentWidget()]),
       bottomNavigationBar: const _MobileBottomNav(),
     );
   }
@@ -148,13 +206,19 @@ class _MobileBottomNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardProvider);
-    final items = state.bottomNavItems;
 
-    if (items.isEmpty) return const SizedBox.shrink();
+    if (state.bottomNavItems.isEmpty) return const SizedBox.shrink();
 
-    final currentIndex = items
-        .indexWhere((item) => item.route == state.activeRoute)
-        .clamp(0, items.length - 1);
+    final bottomNavRoutes = [
+      NavRoute.home,
+      NavRoute.employees,
+      NavRoute.attendance,
+      NavRoute.settings,
+    ];
+
+    final currentIndex = bottomNavRoutes
+        .indexOf(state.activeRoute)
+        .clamp(0, bottomNavRoutes.length - 1);
 
     return Container(
       decoration: const BoxDecoration(
@@ -167,26 +231,41 @@ class _MobileBottomNav extends ConsumerWidget {
         backgroundColor: AppColors.cardBg,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textMuted,
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
+        selectedFontSize: 10,
+        unselectedFontSize: 10,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         currentIndex: currentIndex,
         onTap: (index) {
-          if (index < items.length) {
+          if (index < bottomNavRoutes.length) {
             ref
                 .read(dashboardProvider.notifier)
-                .selectNav(items[index].route);
+                .selectNav(bottomNavRoutes[index]);
           }
         },
-        items: items.map((item) {
+        items: bottomNavRoutes.map((route) {
           return BottomNavigationBarItem(
-            icon: Icon(_iconFromRoute(item.route), size: 20),
-            label: item.label,
+            icon: Icon(_iconFromRoute(route), size: 20),
+            label: _labelFromRoute(route),
           );
         }).toList(),
       ),
     );
+  }
+
+  String _labelFromRoute(NavRoute route) {
+    switch (route) {
+      case NavRoute.home:
+        return AppStrings.navHome;
+      case NavRoute.employees:
+        return AppStrings.navEmployees;
+      case NavRoute.attendance:
+        return AppStrings.navAttendance;
+      case NavRoute.settings:
+        return AppStrings.navSettings;
+      default:
+        return '';
+    }
   }
 
   IconData _iconFromRoute(NavRoute route) {
@@ -205,13 +284,12 @@ class _MobileBottomNav extends ConsumerWidget {
   }
 }
 
-// ─── Tablet Layout 600-900px ─────────────────────────────────────────────────
+// ─── Tablet Layout 601-900px ──────────────────────────────────────────────────
 class _TabletLayout extends ConsumerWidget {
   const _TabletLayout();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Auto-collapse sidebar on tablet
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = ref.read(dashboardProvider);
       if (!state.isSidebarCollapsed) {
@@ -223,10 +301,8 @@ class _TabletLayout extends ConsumerWidget {
       backgroundColor: AppColors.pageBg,
       body: Column(
         children: [
-          // Top navbar
-           RightPanelNavbar(),
-          // Collapsed sidebar + main content
-           Expanded(
+          RightPanelNavbar(),
+          Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -241,7 +317,7 @@ class _TabletLayout extends ConsumerWidget {
   }
 }
 
-// ─── Desktop Small Layout 900-1200px ─────────────────────────────────────────
+// ─── Desktop Small Layout 901-1200px ─────────────────────────────────────────
 class _DesktopSmLayout extends ConsumerWidget {
   const _DesktopSmLayout();
 
@@ -249,7 +325,6 @@ class _DesktopSmLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardProvider);
 
-    // Auto-expand sidebar on desktop
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (state.isSidebarCollapsed) {
         ref.read(dashboardProvider.notifier).expandSidebar();
@@ -262,14 +337,13 @@ class _DesktopSmLayout extends ConsumerWidget {
         children: [
           Column(
             children: [
-              // Top navbar with right panel toggle button
               _DesktopSmNavbar(),
-             const  Expanded(
+              const Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     SidebarWidget(),
-                     MainContentWidget(),
+                    SidebarWidget(),
+                    MainContentWidget(),
                   ],
                 ),
               ),
@@ -296,8 +370,7 @@ class _DesktopSmLayout extends ConsumerWidget {
 class _DesktopSmNavbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isVisible =
-        ref.watch(dashboardProvider).isRightPanelVisible;
+    final isVisible = ref.watch(dashboardProvider).isRightPanelVisible;
 
     return Container(
       height: AppSpacing.topBarHeight,
@@ -310,14 +383,14 @@ class _DesktopSmNavbar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const Expanded(child:  RightPanelNavbar()),
+          const Expanded(child: RightPanelNavbar()),
+          const Gap(8),
           // Toggle right panel overlay button
           HoverBuilder(
             builder: (isHovered) {
               return GestureDetector(
-                onTap: () => ref
-                    .read(dashboardProvider.notifier)
-                    .toggleRightPanel(),
+                onTap: () =>
+                    ref.read(dashboardProvider.notifier).toggleRightPanel(),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   padding: const EdgeInsets.symmetric(
@@ -339,6 +412,7 @@ class _DesktopSmNavbar extends ConsumerWidget {
                     ),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         isVisible
@@ -380,7 +454,6 @@ class _DesktopLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardProvider);
 
-    // Auto-expand sidebar on full desktop
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (state.isSidebarCollapsed) {
         ref.read(dashboardProvider.notifier).expandSidebar();
@@ -391,9 +464,7 @@ class _DesktopLayout extends ConsumerWidget {
       backgroundColor: AppColors.pageBg,
       body: Column(
         children: [
-          // Top navbar with sidebar toggle
           _DesktopNavbar(),
-          // 3-column layout
           const Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,8 +485,7 @@ class _DesktopLayout extends ConsumerWidget {
 class _DesktopNavbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isCollapsed =
-        ref.watch(dashboardProvider).isSidebarCollapsed;
+    final isCollapsed = ref.watch(dashboardProvider).isSidebarCollapsed;
 
     return Container(
       height: AppSpacing.topBarHeight,
@@ -428,7 +498,6 @@ class _DesktopNavbar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // Sidebar collapse toggle
           AppIconButton(
             icon: isCollapsed
                 ? Icons.menu_rounded
@@ -438,7 +507,6 @@ class _DesktopNavbar extends ConsumerWidget {
                 ref.read(dashboardProvider.notifier).toggleSidebar(),
           ),
           const Gap(8),
-          // Main navbar content
           const Expanded(child: RightPanelNavbar()),
         ],
       ),

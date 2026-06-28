@@ -52,26 +52,51 @@ class RightPanelWidget extends ConsumerWidget {
               ),
               const Gap(16),
               // Birthday card
-              _CelebrationCard(
-                title: AppStrings.birthdayTitle,
-                buttonLabel: AppStrings.birthdayButton,
-                colorHexList: state.todayBirthdays
-                    .map((p) => p.avatarColorHex)
-                    .toList(),
-                names: state.todayBirthdays.map((p) => p.name).toList(),
-                total: state.todayBirthdays.length,
-              ),
+ // Birthday card — hidden when no birthdays today
+              if (state.todayBirthdays.isNotEmpty)
+                _CelebrationCard(
+                  title: AppStrings.birthdayTitle,
+                  buttonLabel: AppStrings.birthdayButton,
+                  colorHexList: state.todayBirthdays
+                      .map((p) => p.avatarColorHex)
+                      .toList(),
+                  names: state.todayBirthdays.map((p) => p.name).toList(),
+                  total: state.todayBirthdays.length,
+                )
+              else
+               const Padding(
+                  padding:  EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No birthdays today',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ),
               const Gap(12),
-              // Anniversary card
-              _CelebrationCard(
-                title: AppStrings.anniversaryTitle,
-                buttonLabel: AppStrings.anniversaryButton,
-                colorHexList: state.anniversaries
-                    .map((p) => p.avatarColorHex)
-                    .toList(),
-                names: state.anniversaries.map((p) => p.name).toList(),
-                total: state.anniversaries.length,
-              ),
+              // Anniversary card — hidden when no anniversaries today
+              if (state.anniversaries.isNotEmpty)
+                _CelebrationCard(
+                  title: AppStrings.anniversaryTitle,
+                  buttonLabel: AppStrings.anniversaryButton,
+                  colorHexList: state.anniversaries
+                      .map((p) => p.avatarColorHex)
+                      .toList(),
+                  names: state.anniversaries.map((p) => p.name).toList(),
+                  total: state.anniversaries.length,
+                )
+              else
+              const  Padding(
+                  padding:  EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No anniversaries today',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

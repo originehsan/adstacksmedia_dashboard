@@ -19,11 +19,30 @@ class AvatarStack extends StatelessWidget {
     this.maxVisible = 4,
   });
 
-  @override
+ @override
   Widget build(BuildContext context) {
     final count = colorHexList.length;
-    if (count == 0) return const SizedBox.shrink();
 
+    // Guard against empty list — used by birthday and anniversary cards
+    if (count == 0) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Container(
+          decoration: const BoxDecoration(
+            color:  Color(0xFFE5E7EB),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.person_outline_rounded,
+            size: 16,
+            color: Color(0xFF9CA3AF),
+          ),
+        ),
+      );
+    }
+
+    // Use take() — safe on lists smaller than maxVisible
     final visibleCount = count > maxVisible ? maxVisible : count;
     final totalWidth = size + (visibleCount - 1) * (size - overlap);
 

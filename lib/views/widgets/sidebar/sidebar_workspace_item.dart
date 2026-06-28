@@ -24,10 +24,7 @@ class SidebarWorkspaceItem extends StatelessWidget {
         GestureDetector(
           onTap: onToggle,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 6,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
               children: [
                 Icon(
@@ -44,9 +41,11 @@ class SidebarWorkspaceItem extends StatelessWidget {
                     style: AppTypography.bodySm.copyWith(
                       color: AppColors.textSecondary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // Animated chevron rotates when expanded
+                const SizedBox(width: 4),
                 AnimatedRotation(
                   turns: workspace.isExpanded ? 0.5 : 0,
                   duration: const Duration(milliseconds: 200),
@@ -64,10 +63,7 @@ class SidebarWorkspaceItem extends StatelessWidget {
         if (workspace.isExpanded)
           ...workspace.children.map(
             (child) => Padding(
-              padding: const EdgeInsets.only(
-                left: 36,
-                bottom: 4,
-              ),
+              padding: const EdgeInsets.only(left: 36, bottom: 4),
               child: Text(
                 child,
                 style: AppTypography.bodySm.copyWith(

@@ -27,34 +27,41 @@ class AppIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final button = HoverBuilder(
-      builder: (isHovered) {
-        return GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: isHovered
-                  ? (hoverColor ?? AppColors.borderLight)
-                  : Colors.transparent,
-              borderRadius: AppRadius.smAll,
+    final button = Semantics(
+      label: tooltip ?? 'Icon button',
+      button: true,
+      child: HoverBuilder(
+        cursor: SystemMouseCursors.click,
+        builder: (isHovered) {
+          return GestureDetector(
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color:
+                    isHovered
+                        ? (hoverColor ?? AppColors.borderLight)
+                        : Colors.transparent,
+                borderRadius: AppRadius.smAll,
+              ),
+              child: Icon(
+                icon,
+                size: iconSize,
+                color: iconColor ?? AppColors.textSecondary,
+              ),
             ),
-            child: Icon(
-              icon,
-              size: iconSize,
-              color: iconColor ?? AppColors.textSecondary,
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
 
     // Wrap with tooltip only if provided
     if (tooltip != null) {
       return Tooltip(
         message: tooltip!,
+        triggerMode: TooltipTriggerMode.tap,
         child: button,
       );
     }

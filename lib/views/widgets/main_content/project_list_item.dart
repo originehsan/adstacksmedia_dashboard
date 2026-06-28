@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import '../../../constants/app_strings.dart';
 import '../../../models/project_model.dart';
 import '../../../shared/widgets/app_icon_button.dart';
@@ -9,18 +10,18 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_radius.dart';
 import '../../../theme/app_typography.dart';
 
-// Single project row in All Projects section
-// Shows thumbnail placeholder, title, project number, status chip, edit icon
+// Single project row — fully responsive
+// Mobile: hides status chip label, shows only icon
+// Desktop: full row with thumbnail, title, status chip, edit icon
 class ProjectListItem extends StatelessWidget {
   final ProjectModel project;
 
-  const ProjectListItem({
-    super.key,
-    required this.project,
-  });
+  const ProjectListItem({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.of(context).equals(MOBILE);
+
     return HoverBuilder(
       builder: (isHovered) {
         return AnimatedContainer(
@@ -35,8 +36,8 @@ class ProjectListItem extends StatelessWidget {
             children: [
               // Project thumbnail placeholder
               Container(
-                width: 42,
-                height: 42,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -48,12 +49,12 @@ class ProjectListItem extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.image_rounded,
-                  size: 18,
+                  size: 16,
                   color: AppColors.primary,
                 ),
               ),
-              const Gap(12),
-              // Project title and number
+              const Gap(10),
+              // Project title and number — Expanded prevents overflow
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,35 +68,46 @@ class ProjectListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Gap(2),
-                    Row(
-                      children: [
-                        Text(
-                          '${AppStrings.projectPrefix}${project.projectNumber}',
-                          style: AppTypography.caption,
-                        ),
-                        const Gap(4),
-                        Text(
-                          '· ${AppStrings.seeDetailsLabel}',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.primary,
+                    // On mobile show only project number
+                    // On desktop show full details link
+                    if (isMobile)
+                      Text(
+                        '${AppStrings.projectPrefix}${project.projectNumber}',
+                        style: AppTypography.caption,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    else
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '${AppStrings.projectPrefix}${project.projectNumber} · ${AppStrings.seeDetailsLabel}',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ],
                 ),
               ),
-              const Gap(8),
-              // Project status chip
-              AppStatusChip(status: project.status),
-              const Gap(8),
-              // Edit icon button
+              const Gap(6),
+              // Status chip — hidden on mobile to save space
+              if (!isMobile) ...[
+                AppStatusChip(status: project.status),
+                const Gap(6),
+              ],
+              // Edit icon
               AppIconButton(
                 icon: Icons.edit_outlined,
                 tooltip: AppStrings.tooltipEditProject,
                 iconColor: AppColors.textMuted,
-                size: 28,
-                iconSize: 15,
+                size: 26,
+                iconSize: 14,
                 onTap: () {},
               ),
             ],
